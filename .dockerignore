@@ -1,0 +1,21 @@
+# Ignore everything
+**
+
+# Allow files and directories
+!/gomssql_python
+/gomssql_python/py2
+!/gomssql_python/py2/__init__.py
+!/gomssql_python_go
+!/build.sh
+!/go.mod
+!/go.sum
+!/requirements.txt
+!/setup.py
+!/README.md
+!/e2e_test
+!/LICENSE*
+!/MANIFEST.in
+!/create_test_db.sql
+!/manual_test.py
+!/_manual_test.sh
+**/*.pyc

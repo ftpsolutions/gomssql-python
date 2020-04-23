@@ -26,13 +26,13 @@ trap finish EXIT
 IMAGE_TAG=gomssql_python_test_build-${CONTAINER_NAME}
 
 if [ -z "${SKIP_BUILD}" ]; then
-    docker build --tag ${IMAGE_TAG} -f Dockerfile_test_build .
+    DOCKER_BUILDKIT=1 docker build --tag ${IMAGE_TAG} -f Dockerfile_test_build .
 fi
 
 DOCKER_CMD="py.test -s"
 if [ "$#" -gt 0 ]; then
     echo "Using command from args"
-    DOCKER_CMD=$@
+    DOCKER_CMD="${*}"
 fi
 
 # Define MOUNT_WORKSPACE to mount this workspace inside the docker container
@@ -43,7 +43,7 @@ fi
 
 # run the tests / shell
 docker run --name ${CONTAINER_NAME} --rm -d ${WORKSPACE_VOLUME} ${IMAGE_TAG} tail -F /dev/null
-docker exec -it ${CONTAINER_NAME} ${DOCKER_CMD}
+docker exec -it -e MSSQL_PASSWORD ${CONTAINER_NAME} ${DOCKER_CMD}
 
 # extract the package for deployment
 NAME=$(cat setup.py | grep 'name=' | xargs | cut -d '=' -f 2 | tr -d ',')
