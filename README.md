@@ -1,111 +1,82 @@
-## gomssql-python
+# gomssql-python
 
-The purpose of this module is to provide a Python interface to the Golang [gomssql-db](https://github.com/denisenkom/go-mssqldb) module.
+This library binds [go-mssqldb](https://github.com/denisenkom/go-mssqldb) for use in Python3 using [gopy](https://github.com/go-python/gopy)
+.
 
-It was made very easy with the help of the Golang [gopy](https://github.com/go-python/gopy) module.
+## Versions
 
-It has come about because it seems impossible to get away from memory leaks when you're dealing with UnixODBC and FreeTDS.
+All versions 1.0.0 and up support Python 3 only! If you need Python 2 support, check out the following:
 
-#### Versions
+- [https://github.com/ftpsolutions/gomssql-python/tree/v0.91](https://github.com/ftpsolutions/gomssql-python/tree/v0.91)
+- https://pypi.org/project/gomssql-python/0.91/
 
-This version (0.91) is the last version to support Python 2; all versions after this have been subject to a refactor and support Python 3
-only.
+## Concept
 
-#### Limitations
+In the early days `gopy` was fairly limited in it's ability to track object allocation across the border of Go and Python.
 
-* Python command needs to be prefixed with GODEBUG=cgocheck=0 (or have that in the environment)
+As a result, our implementation is fairly naive- we only pass primitive types from Go to Python (nothing that comes by reference).
 
-#### Prerequisites
+Session are managed entirely on the Go side and identified with an integer- here are a few function signatures to demonstrate:
 
-* Go 1.13
-* Python 2.7+
-* pip
-* virtualenvwrapper
-* pkgconfig/pkg-config
+- `NewRPCSession(dataSourceName string) uint64`
+- `RPCConnect(sessionID uint64) error`
+- `RPCQuery(sessionID uint64, query string) (uint64, error)`
+- `RPCFetchAll(sessionID, rowsID uint64) (string, error)`
+- `RPCExecute(sessionID uint64, query string) (uint64, error)`
+- `RPCGetRowsAffected(sessionID, resultID uint64) (int64, error)`
+- `RPCClose(sessionID uint64) error`
 
-#### Installation (for prod)
+The functions that return complex data do so in a special JSON-based format- at this point `gopy` does it's magic and those functions are
+made available to Python.
 
-* ```python setup.py install```
+We then have `RPCSession` abstraction on the Python side that pulls things together in a class for convenience (saving you need the to keep
+track of the identifiers and handling deserialisation).
 
-#### Installation (from PyPI)
+## Weird gotchas
 
-* ```python -m pip install gomssql-python```
+We're building for Python3 and we use a `python-config` script for Python3 however we're using a `python.pc` file from Python2.
 
-#### Installation (for prod)
+I dunno why this has to be this way, but it's the only way I can get the C Python API GIL lock/unlock calls to be available to
+Go (`C.PyEval_SaveThread()` and `C.PyEval_RestoreThread(tState)`).
 
-* ```python setup.py install```
+So if you're wondering why Python2 still comes into it here and there- that's why. Doesn't seem to cause any problems.
 
-#### Making a python wheel install file (for distribution)
+## Prerequisites
 
-* ```python setup.py bdist_wheel```
+- MacOS
+- CPython3.8+
+- virtualenv
+    - `pip install virtualenv`
+- pkgconfig
+    - `brew install pkg-config`
+- Docker
 
-#### Setup (for dev)
-
-Ensure pkg-config is installed
-
-* ```mkvirtualenvwrapper -p (/path/to/pypy) gomssql-python```
-* ```pip install -r requirements-dev.txt```
-* ```./build.sh```
-* ```GODEBUG=cgocheck=0 py.test -v```
-
-#### What's worth knowing if I want to further the development?
-
-* gopy doesn't like Go interfaces; so make sure you don't have any public (exported) interfaces
-    * this includes a struct with a public property that may eventually lead to an interface
-
-#### Example Python usage
-
-To create an MSSQL session in Python do the following:
+## Install (from PyPI)
 
 ```
-from gomssql_python import Connection
-
-ip = "127.0.0.1"
-port = 5432
-database = "test"
-username = "test"
-password = "test"
-
-conn_str = """
-            server=%s;
-            port=%i;
-            database=%s;
-            user id=%s;
-            password=%s;
-        """ % (
-    ip, port, database,
-    username, password
-).replace('\n', '').replace(' ', '')
-
-connection = Connection(conn_str)
-cursor = connection.cursor()
-
-query = "SELECT NOW()"
-
-cursor.execute(query)
-
-records = cursor.fetchall()
-
-print("Records:")
-print(records)
-
-cursor.close()
-connection.close()
+python -m pip install gomssql-python
 ```
 
-## To develop / run the tests
+## Setup
 
-    MOUNT_WORKSPACE=1 ./test.sh bash
-    ./build.sh
-    py.test
+```
+virtualenv -p $(which python3) venv
+source venv/bin/activate
+./fix_venv.sh
+pip install -r requirements-dev.txt
+```
 
-## To test the sdist package
+## Build
 
-    py.test
+```
+source venv/bin/activate
+./native_build.sh
+```
 
-## To do some manual testing
+If you're deep in the grind and want to iterate faster, you can invoke:
 
-    ./manual_test.sh
+```
+./native_build.sh fast
+```
 
-This will spin up a Docker container that tries to connect to a specific database (internal to FTP Solutions); if the database is not there
-it'll simply fail (which is a good way to manually test for leaking memory).
+This skips the setup (assuming you've already done that).

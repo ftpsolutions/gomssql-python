@@ -72,10 +72,8 @@ func handleResultPanic(extra string, resultID uint64, r *sql.Result, err error) 
 
 // NewRPCSession creates a new session and returns the sessionID
 func NewRPCSession(dataSourceName string) uint64 {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	session := newSession(
 		dataSourceName,
@@ -92,10 +90,8 @@ func NewRPCSession(dataSourceName string) uint64 {
 
 // RPCConnect connects
 func RPCConnect(sessionID uint64) error {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	var err error
 
@@ -122,10 +118,8 @@ func RPCConnect(sessionID uint64) error {
 
 // RPCQuery executes a query
 func RPCQuery(sessionID uint64, query string) (uint64, error) {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	var err error
 	var rowsID uint64
@@ -164,10 +158,8 @@ func RPCQuery(sessionID uint64, query string) (uint64, error) {
 
 // RPCFetchAll returns results
 func RPCFetchAll(sessionID, rowsID uint64) (string, error) {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	var err error
 	var records [][]multiField
@@ -224,10 +216,8 @@ func RPCFetchAll(sessionID, rowsID uint64) (string, error) {
 
 // RPCExecute executes a query
 func RPCExecute(sessionID uint64, query string) (uint64, error) {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	var err error
 	var resultID uint64
@@ -266,10 +256,8 @@ func RPCExecute(sessionID uint64, query string) (uint64, error) {
 
 // RPCGetRowsAffected returns the last inserted and affected row counts
 func RPCGetRowsAffected(sessionID, resultID uint64) (int64, error) {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	var err error
 
@@ -322,10 +310,8 @@ func RPCGetRowsAffected(sessionID, resultID uint64) (int64, error) {
 
 // RPCClose closes
 func RPCClose(sessionID uint64) error {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	sessionMutex.Lock()
 	val, ok := sessions[sessionID]

@@ -1,4 +1,4 @@
-from .rpc_session import create_session
+from gomssql_python.rpc_session import create_session
 
 
 class CursorClosedError(Exception):
@@ -24,9 +24,7 @@ class Cursor(object):
         self._rowcount = -1
 
     def __repr__(self):
-        return "<{}(connection={}) at {}>".format(
-            self.__class__.__name__, repr(self._connection), hex(id(self))
-        )
+        return "<{}(connection={}) at {}>".format(self.__class__.__name__, repr(self._connection), hex(id(self)))
 
     def __enter__(self):
         return self
@@ -59,9 +57,7 @@ class Cursor(object):
             raise CursorClosedError("attempt to call .fetchall() on closed cursor")
 
         if self._rows_id is None:
-            raise NoRowsToFetchError(
-                "attempt to call .fetchall() before ._query() called"
-            )
+            raise NoRowsToFetchError("attempt to call .fetchall() before ._query() called")
         elif self._rows_id is False:
             return []
 
@@ -110,9 +106,7 @@ class Connection(object):
         self._session.connect()
 
     def __repr__(self):
-        return "<{}(session={}) at {}>".format(
-            self.__class__.__name__, repr(self._session), hex(id(self))
-        )
+        return "<{}(session={}) at {}>".format(self.__class__.__name__, repr(self._session), hex(id(self)))
 
     def __enter__(self):
         return self
@@ -129,21 +123,13 @@ class Connection(object):
 
     def cursor(self):
         if self._session is None:
-            raise ConnectionClosedError(
-                "attempt to call .cursor() on a closed connection"
-            )
+            raise ConnectionClosedError("attempt to call .cursor() on a closed connection")
 
-        return (
-            self._cursor
-            if self._cursor is not None
-            else Cursor(connection=self, close_callback=self._close_cursor)
-        )
+        return self._cursor if self._cursor is not None else Cursor(connection=self, close_callback=self._close_cursor)
 
     def close(self):
         if self._session is None:
-            raise ConnectionClosedError(
-                "attempt to call .close() on a closed connection"
-            )
+            raise ConnectionClosedError("attempt to call .close() on a closed connection")
 
         if self._cursor is not None:
             self._cursor.close()

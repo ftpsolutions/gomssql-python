@@ -1,8 +1,0 @@
-include LICENSE
-include README.md
-recursive-include e2e_test *
-recursive-include gomssql_python *
-recursive-include gomssql_python_go *
-include go.mod
-include go.sum
-include build.sh

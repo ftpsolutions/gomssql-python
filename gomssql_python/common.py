@@ -1,13 +1,7 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import json
 from collections import namedtuple
 
-from builtins import *
 from dateutil.parser import parse
-from future import standard_library
-
-standard_library.install_aliases()
 
 MultiField = namedtuple(
     "MultiField",
@@ -31,23 +25,21 @@ class GoRuntimeError(Exception):
 def handle_exception(method, args, other=None):
     try:
         return method(*args)
-    except RuntimeError as e:
-        raise GoRuntimeError(
-            "{0} raised on Go side while calling {1} with args {2} from {3}".format(
-                repr(e), repr(method), repr(args), repr(other)
-            )
-        )
+    except Exception as e:
+        e = e if not hasattr(e, "__cause__") and isinstance(e.__cause__, BaseException) else e.__cause__
+
+        new_args = ("attempt to call {} on the Go side raised {}".format("{}(*{})".format(repr(method), repr(args)), repr(e)),)
+
+        e.args = new_args
+
+        raise GoRuntimeError(e)
 
 
 def handle_records_json(records_json_string, session=None):
     try:
         records_json = json.loads(records_json_string)
     except ValueError as e:
-        raise ValueError(
-            "{0} raised {1} while parsing {2}".format(
-                session, e, repr(records_json_string)
-            )
-        )
+        raise ValueError("{0} raised {1} while parsing {2}".format(session, e, repr(records_json_string)))
 
     return [[MultiField(**column) for column in row] for row in records_json]
 
@@ -71,11 +63,7 @@ def handle_records(raw_records):
                 try:
                     record += [parse(column.DateTimeValue)]
                 except ValueError as e:
-                    raise ValueError(
-                        "raised {0} while parsing {1}".format(
-                            e, repr(column.DateTimeValue)
-                        )
-                    )
+                    raise ValueError("raised {0} while parsing {1}".format(e, repr(column.DateTimeValue)))
 
         records += [tuple(record)]
 

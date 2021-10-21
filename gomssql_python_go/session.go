@@ -137,6 +137,10 @@ func (s *session) connect() error {
 }
 
 func (s *session) query(query string) (*sql.Rows, error) {
+	if !s.connected {
+		return nil, fmt.Errorf("cannot query; not connected")
+	}
+
 	rows, err := s.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -153,7 +157,9 @@ func (s *session) fetchAll(rows *sql.Rows) ([][]multiField, error) {
 		return records, err
 	}
 
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	for {
 		if !rows.Next() {
@@ -188,6 +194,10 @@ func (s *session) fetchAll(rows *sql.Rows) ([][]multiField, error) {
 }
 
 func (s *session) execute(query string) (*sql.Result, error) {
+	if !s.connected {
+		return nil, fmt.Errorf("cannot execute; not connected")
+	}
+
 	result, err := s.db.Exec(query)
 	if err != nil {
 		return nil, err
@@ -198,7 +208,9 @@ func (s *session) execute(query string) (*sql.Result, error) {
 
 func (s *session) close() error {
 	if s.db != nil {
-		s.db.Close()
+		func() {
+			_ = s.db.Close()
+		}()
 		s.db = nil
 	}
 
