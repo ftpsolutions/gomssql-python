@@ -6,6 +6,11 @@ It was made very easy with the help of the Golang [gopy](https://github.com/go-p
 
 It has come about because it seems impossible to get away from memory leaks when you're dealing with UnixODBC and FreeTDS.
 
+#### Versions
+
+This version (0.2.4) is the last version to support Python 2; all versions after this have been subject to a refactor and support Python 3
+only.
+
 #### Limitations
 
 * Python command needs to be prefixed with GODEBUG=cgocheck=0 (or have that in the environment)
@@ -19,15 +24,18 @@ It has come about because it seems impossible to get away from memory leaks when
 * pkgconfig/pkg-config
 
 #### Installation (for prod)
-* ```python setup.py install``` 
+
+* ```python setup.py install```
 
 #### Making a python wheel install file (for distribution)
-* ```python setup.py bdist_wheel``` 
+
+* ```python setup.py bdist_wheel```
 
 #### Setup (for dev)
+
 Ensure pkg-config is installed
 
-* ```mkvirtualenvwrapper -p (/path/to/pypy) gomssql-python``` 
+* ```mkvirtualenvwrapper -p (/path/to/pypy) gomssql-python```
 * ```pip install -r requirements-dev.txt```
 * ```./build.sh```
 * ```GODEBUG=cgocheck=0 py.test -v```
@@ -82,14 +90,14 @@ connection.close()
     MOUNT_WORKSPACE=1 ./test.sh bash
     ./build.sh
     py.test
-    
+
 ## To test the sdist package
 
     py.test
-    
+
 ## To do some manual testing
 
     ./manual_test.sh
 
-This will spin up a Docker container that tries to connect to a specific database (internal to FTP Solutions); if the database is not
-there it'll simply fail (which is a good way to manually test for leaking memory).
+This will spin up a Docker container that tries to connect to a specific database (internal to FTP Solutions); if the database is not there
+it'll simply fail (which is a good way to manually test for leaking memory).
